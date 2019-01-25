@@ -24,9 +24,10 @@ io.on('connection', (socket) => {
   });
 
 
-  socket.on('createMessage', (message) => {
+  socket.on('createMessage', (message, callback) => {
     console.log('Create new Message', message);
     io.emit('newMessage', messageGenerator(message.from, message.text));
+    callback();
   });
 });
 
