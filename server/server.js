@@ -12,6 +12,18 @@ var server = http.createServer(app);
 var io = socketIO(server);
 
 io.on('connection', (socket) => {
+
+  socket.emit('newMessage', {
+    from: 'Admin',
+    text: 'Hello There User!',
+    createdAt: new Date().getTime()
+  });
+  socket.broadcast.emit('newMessage', {
+    from: 'Admin',
+    text: 'Welcome, Sanjay, the latest user!',
+    createdAt: new Date().getTime()
+  });
+
   console.log('New User Connected');
   socket.on('disconnect', (socket) => {
     console.log('User Disconnected');
@@ -21,8 +33,9 @@ io.on('connection', (socket) => {
   socket.on('createMessage', (message) => {
     console.log('Create new Message', message);
     io.emit('newMessage', {
-      to: message.to,
-      text: message.text
+      from: message.from,
+      text: message.text,
+      createdAt: new Date().getTime()
     });
   });
 });
