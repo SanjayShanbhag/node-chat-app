@@ -17,14 +17,13 @@ io.on('connection', (socket) => {
     console.log('User Disconnected');
   });
 
-  socket.emit('newMessage', {
-    from: 'sanjayb.shanbhag@gmail.com',
-    text: 'Hello',
-    createdAt: 123
-  });
 
   socket.on('createMessage', (message) => {
     console.log('Create new Message', message);
+    io.emit('newMessage', {
+      to: message.to,
+      text: message.text
+    });
   });
 });
 

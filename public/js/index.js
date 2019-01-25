@@ -9,7 +9,7 @@ socket.on('disconnect', function () {
 });
 
 socket.on('newMessage', function (email) {
-  console.log('New Email Recieved: ', email);
+  console.log('New Message Recieved: ', email);
 });
 
 socket.emit('createMessage', {
