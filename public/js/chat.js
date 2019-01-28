@@ -1,27 +1,47 @@
 var socket = io();
 
-socket.on('connect', function () {
-    console.log('Connected to server');
-});
-
-socket.on('disconnect', function () {
-  console.log('Disconnected from server.');
-});
-
 function scrollToBottom () {
+  // Selectors
   var messages = jQuery('#messages');
-  var newMessage = messages.children('li:last-child');
-
+  var newMessage = messages.children('li:last-child')
+  // Heights
   var clientHeight = messages.prop('clientHeight');
   var scrollTop = messages.prop('scrollTop');
   var scrollHeight = messages.prop('scrollHeight');
-  var messageHeight = newMessage.innerHeight();
-  var prevMessageHeight = newMessage.prev().innerHeight();
+  var newMessageHeight = newMessage.innerHeight();
+  var lastMessageHeight = newMessage.prev().innerHeight();
 
-  if (clientHeight + scrollTop + messageHeight + prevMessageHeight >= scrollHeight) {
+  if (clientHeight + scrollTop + newMessageHeight + lastMessageHeight >= scrollHeight) {
     messages.scrollTop(scrollHeight);
   }
 }
+
+socket.on('connect', function () {
+  var params = jQuery.deparam(window.location.search);
+
+  socket.emit('join', params, function (err) {
+    if (err) {
+      alert(err);
+      window.location.href = '/';
+    } else {
+      console.log('No error');
+    }
+  });
+});
+
+socket.on('disconnect', function () {
+  console.log('Disconnected from server');
+});
+
+socket.on('updateUserList', function (users) {
+  var ol = jQuery('<ol></ol>');
+
+  users.forEach(function (user) {
+    ol.append(jQuery('<li></li>').text(user));
+  });
+
+  jQuery('#users').html(ol);
+});
 
 socket.on('newMessage', function (message) {
   var formattedTime = moment(message.createdAt).format('h:mm a');
@@ -51,30 +71,32 @@ socket.on('newLocationMessage', function (message) {
 
 jQuery('#message-form').on('submit', function (e) {
   e.preventDefault();
-  var messageBox = jQuery('[name=message]');
+
+  var messageTextbox = jQuery('[name=message]');
+
   socket.emit('createMessage', {
-    from: 'User',
-    text: messageBox.val()
+    text: messageTextbox.val()
   }, function () {
-    messageBox.val('');
+    messageTextbox.val('')
   });
 });
 
-var loc = jQuery('#send-location');
-loc.on('click', function () {
-  if(!navigator.geolocation) {
-    return alert('This feature is not supported by your browser');
+var locationButton = jQuery('#send-location');
+locationButton.on('click', function () {
+  if (!navigator.geolocation) {
+    return alert('Geolocation not supported by your browser.');
   }
-  loc.attr('disabled', 'disabled').text('Sending Location...');
+
+  locationButton.attr('disabled', 'disabled').text('Sending location...');
+
   navigator.geolocation.getCurrentPosition(function (position) {
-    loc.removeAttr('disabled').text('Send Location');
+    locationButton.removeAttr('disabled').text('Send location');
     socket.emit('createLocationMessage', {
-      from: 'Admin',
       latitude: position.coords.latitude,
       longitude: position.coords.longitude
     });
   }, function () {
-    loc.removeAttr('disabled').text('Send Location');
+    locationButton.removeAttr('disabled').text('Send location');
     alert('Unable to fetch location.');
   });
 });
